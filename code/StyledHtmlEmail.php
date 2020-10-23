@@ -1,5 +1,6 @@
 <?php
-use Pelago\Emogrifier;
+use Pelago\Emogrifier\CssInliner;
+use Symfony\Component\CssSelector\Exception\ParseException;
 
 /**
  * Same as the normal system email class, but runs the content through
@@ -13,6 +14,7 @@ class StyledHtmlEmail extends Email
      * we run the email through emogrifier to inline the styles.
      * @param bool $isPlain
      * @return $this
+     * @throws ParseException
      */
     protected function parseVariables($isPlain = false)
     {
@@ -37,8 +39,9 @@ class StyledHtmlEmail extends Email
                 $this->body
             );
 
-            $emog = new Emogrifier($html, $css);
-            $this->body = $emog->emogrify();
+            $emog = CssInliner::fromHtml($html);
+            $emog->inlineCss($css);
+            $this->body = $emog->render();
         }
 
         return $this;

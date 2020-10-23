@@ -1,5 +1,6 @@
 <?php
 use Pelago\Emogrifier;
+use Symfony\Component\CssSelector\Exception\ParseException;
 
 /**
  * Inline CSS
@@ -9,24 +10,25 @@ class InlineCSS
     /**
      * Inline both the embedded css, and css from an external file, into html
      *
-     * @param  HTML $htmlContent
+     * @param string $htmlContent
      * @param string $cssFile path and filename
-     * @return HTML with inlined CSS
+     * @return string with inlined CSS
+     * @throws ParseException
      */
-    public static function convert($htmlContent, $cssfile)
+    public static function convert($htmlContent, $cssFile)
     {
-        $emog = new Emogrifier($htmlContent);
+        $emog = Emogrifier\CssInliner::fromHtml($htmlContent);
 
         // Apply the css file to Emogrifier
-        if ($cssfile) {
-            $cssFileLocation = join(DIRECTORY_SEPARATOR, array(Director::baseFolder(), $cssfile));
-            $cssFileHandler = fopen($cssFileLocation, 'r');
+        if ($cssFile) {
+            $cssFileLocation = implode(DIRECTORY_SEPARATOR, array(Director::baseFolder(), $cssFile));
+            $cssFileHandler = fopen($cssFileLocation, 'rb');
             $css = fread($cssFileHandler, filesize($cssFileLocation));
             fclose($cssFileHandler);
 
-            $emog->setCss($css);
+            $emog->inlineCss($css);
         }
 
-        return $emog->emogrify();
+        return $emog->render();
     }
 }
